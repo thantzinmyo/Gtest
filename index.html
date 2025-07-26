@@ -6,6 +6,8 @@
     <title>မြန်မာ Content AI Prompt Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
     
+    <link rel="icon" href="favicon.ico" type="image/x-icon"> 
+    
     <style>
         /* Global Styles */
         body {
@@ -256,7 +258,7 @@
         <div id="apiKeyScreen">
             <div class="form-group">
                 <label for="geminiApiKey">Gemini API Key</label>
-                <input type="password" id="geminiApiKey" placeholder="သင်၏ Gemini API key ထည့်သွင်းပါ">
+                <input type="password" id="geminiApiKey" placeholder="သင်၏ Google Gemini API key အား ဤနေရာတွင် ထည့်သွင်းပါ။">
             </div>
             <button class="primary-btn" id="saveApiKeyBtn">ဆက်လက်ဆောင်ရွက်ရန်</button>
             <p>သင်၏ Gemini API key အား Google AI Studio တွင် ရယူနိုင်ပါသည်။</p>
@@ -265,33 +267,33 @@
         <div id="promptGeneratorScreen">
             <div class="form-group">
                 <label for="topic">ခေါင်းစဉ်အမည်</label>
-                <input type="text" id="topic" placeholder="ဥပမာ: မြန်မာအစားအစာအချက်အပြုတ်များ">
+                <input type="text" id="topic" placeholder="ဥပမာ: မြန်မာအစားအစာအချက်အပြုတ်များ၊ စာပေအကြောင်း၊ နည်းပညာ">
             </div>
 
             <div class="form-group">
                 <label for="tone">ရေးသားဟန်</label>
                 <select id="tone">
-                    <option value="">ရွေးချယ်ပါ</option>
-                    <option value="တရားဝင်">တရားဝင်</option>
-                    <option value="ပေါ့ပေါ့ပါးပါး">ပေါ့ပေါ့ပါးပါး</option>
-                    <option value="အချက်အလက်ပြည့်စုံ">အချက်အလက်ပြည့်စုံ</option>
-                    <option value="တီထွင်ဖန်တီး">တီထွင်ဖန်တီး</option>
-                    <option value="ဟာသနှော">ဟာသနှော</option>
+                    <option value="">ရေးသားဟန်ကို ရွေးချယ်ပါ</option>
+                    <option value="တရားဝင်">တရားဝင် (Formal)</option>
+                    <option value="ပေါ့ပေါ့ပါးပါး">ပေါ့ပေါ့ပါးပါး (Casual)</option>
+                    <option value="အချက်အလက်ပြည့်စုံ">အချက်အလက်ပြည့်စုံ (Informative)</option>
+                    <option value="တီထွင်ဖန်တီး">တီထွင်ဖန်တီး (Creative)</option>
+                    <option value="ဟာသနှော">ဟာသနှော (Humorous)</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="details">အကြောင်းအရာ / အကြံပြုချက်</label>
-                <textarea id="details" placeholder="သင်၏ မေးခွန်း သို့မဟုတ် လိုချင်သည့် အကြောင်းအရာကို ဤနေရာတွင် ရေးပါ။"></textarea>
+                <textarea id="details" placeholder="သင်၏ မေးခွန်း သို့မဟုတ် လိုချင်သည့် အကြောင်းအရာ၊ အချက်အလက်များကို ဤနေရာတွင် အသေးစိတ်ရေးပါ။ ဥပမာ- 'မြန်မာ့ရိုးရာအစားအစာ မုန့်ဟင်းခါး ချက်ပြုတ်နည်းကို အဆင့်ဆင့်ရေးသားပေးပါ။'"></textarea>
             </div>
 
             <div class="form-group">
                 <label for="length">အရှည်အရေးအသား</label>
                 <select id="length">
-                    <option value="">အလယ်အလတ်</option>
-                    <option value="တိုတောင်းသည်">တိုတောင်းသည်</option>
-                    <option value="အလယ်အလတ်">အလယ်အလတ်</option>
-                    <option value="ရှည်လျားသည်">ရှည်လျားသည်</option>
+                    <option value="">အရှည်ကို ရွေးချယ်ပါ</option>
+                    <option value="တိုတောင်းသည်">တိုတောင်းသည် (Short)</option>
+                    <option value="အလယ်အလတ်">အလယ်အလတ် (Medium)</option>
+                    <option value="ရှည်လျားသည်">ရှည်လျားသည် (Long)</option>
                 </select>
             </div>
 
@@ -498,4 +500,10 @@
                 }, 1500);
             }).catch(err => {
                 console.error('Copy Failed:', err);
-                alert('Content ကူးယူ၍ မရပါ။ (HTTPS သို့မဟုတ် လုံခြုံသော localhost တွင်သာ အလုပ်လ
+                alert('Content ကူးယူ၍ မရပါ။ (HTTPS သို့မဟုတ် လုံခြုံသော localhost တွင်သာ အလုပ်လုပ်ပါသည်)');
+            });
+        });
+
+    </script>
+</body>
+</html>
