@@ -319,9 +319,9 @@
 
     <script type="module">
         // Google Generative AI SDK မှ GoogleGenerativeAI object ကို import လုပ်ခြင်း
-        // `GoogleGenerativeAI` ကို default export အနေဖြင့် ခေါ်ယူခြင်း
         // Note: Version 0.5.0 ကို သုံးထားပါတယ်။ နောက်ဆုံးထွက် version ကို https://www.npmjs.com/package/@google/generative-ai တွင် စစ်ဆေးပါ။
-        import GoogleGenerativeAI from "https://cdn.jsdelivr.net/npm/@google/generative-ai@0.5.0/dist/index.js"; 
+        // 'default' export error ကို ဖြေရှင်းရန် Named Export ပုံစံ 'import { GoogleGenerativeAI }' ကို ပြန်လည်အသုံးပြုခြင်း။
+        import { GoogleGenerativeAI } from "https://cdn.jsdelivr.net/npm/@google/generative-ai@0.5.0/dist/index.js"; 
 
         // DOM element references
         const apiKeyScreen = document.getElementById('apiKeyScreen');
