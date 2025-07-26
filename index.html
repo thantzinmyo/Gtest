@@ -70,8 +70,13 @@
         .header button.visible {
             display: block;
         }
+        
+        .header button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-        .header button:hover {
+        .header button:hover:not(:disabled) {
             transform: scale(1.1);
         }
 
@@ -131,9 +136,14 @@
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
-        button.primary-btn:hover {
+        button.primary-btn:hover:not(:disabled) {
             background-color: #e0a320; /* Darker shade on hover */
             transform: translateY(-2px);
+        }
+
+        button.primary-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Footer Links Styles */
@@ -228,19 +238,10 @@
             font-weight: bold;
         }
 
-        /* Responsive Adjustments */
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-                margin: 0 15px; /* Add some side margin on small screens */
-            }
-            .header h1 {
-                font-size: 1.5em;
-            }
-            button.primary-btn {
-                font-size: 1em;
-                padding: 12px 20px;
-            }
+        /* Error Text Styling */
+        .error-text {
+            color: #ff6b6b; /* A soft red for errors */
+            font-weight: bold;
         }
     </style>
 </head>
@@ -298,7 +299,7 @@
 
             <button class="primary-btn" id="generateContentBtn">Content ဖန်တီးရန်</button>
 
-            <div id="loadingIndicator">Content ဖန်တီးနေပါသည်။ ခနစောင့်ပါ။...</div>
+            <div id="loadingIndicator">Content ဖန်တီးနေပါသည်။ ကျေးဇူးပြု၍ ခနစောင့်ပါ။...</div>
 
             <div id="outputContainer" class="hidden">
                 <pre id="generatedContentText"></pre>
@@ -314,9 +315,7 @@
     </div>
 
     <script>
-        // Google Generative AI SDK မှ GoogleGenerativeAI object ကို import လုပ်ရန် မလိုအပ်ပါ။
-        // ၎င်းကို <head> ထဲရှိ script tag မှ Global Scope သို့ ထည့်သွင်းပေးပြီးဖြစ်သည်။
-
+        // DOM element references
         const apiKeyScreen = document.getElementById('apiKeyScreen');
         const promptGeneratorScreen = document.getElementById('promptGeneratorScreen');
         const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
@@ -329,66 +328,85 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const backBtn = document.getElementById('backBtn');
 
-        let globalApiKey = ''; // User ထည့်သွင်းမယ့် API Key ကို သိမ်းထားမယ့် Variable
+        let globalApiKey = ''; // Variable to store the user's API Key
 
-        // စစချင်းမှာ API Key ထည့်တဲ့ Screen ကို ပြသမယ်
+        // Initialize by showing the API Key screen
         showApiKeyScreen();
 
         function showApiKeyScreen() {
             apiKeyScreen.style.display = 'flex';
             promptGeneratorScreen.style.display = 'none';
+            // Hide header buttons on API key screen
             refreshBtn.classList.remove('visible');
             backBtn.classList.remove('visible');
-            outputContainer.classList.add('hidden');
-            generatedContentText.textContent = '';
+            outputContainer.classList.add('hidden'); // Ensure output is hidden
+            generatedContentText.textContent = ''; // Clear previous output
         }
 
         function showPromptGeneratorScreen() {
             apiKeyScreen.style.display = 'none';
             promptGeneratorScreen.style.display = 'flex';
+            // Show header buttons on prompt generator screen
             refreshBtn.classList.add('visible');
             backBtn.classList.add('visible');
         }
 
-        // API Key ကို သိမ်းဆည်းရန် Button နှိပ်ခြင်း
+        // Save API Key button click handler
         saveApiKeyBtn.addEventListener('click', function() {
             const apiKey = geminiApiKeyInput.value.trim();
             if (apiKey) {
-                globalApiKey = apiKey; // User ထည့်တဲ့ Key ကို global variable မှာ သိမ်း
-                sessionStorage.setItem('geminiApiKey', apiKey); // Page Refresh လို့လဲ မပျောက်အောင် sessionStorage မှာ သိမ်း
-                showPromptGeneratorScreen(); // Content Generator Screen ကို ပြောင်းပြ
+                globalApiKey = apiKey; // Store key in global variable
+                sessionStorage.setItem('geminiApiKey', apiKey); // Store in sessionStorage
+                showPromptGeneratorScreen(); // Switch to generator screen
             } else {
-                alert("ကျေးဇူးပြု၍ သင်၏ Gemini API Key ကို ထည့်သွင်းပါ။");
+                // Display error in output container for consistency
+                displayOutput("ကျေးဇူးပြု၍ သင်၏ Gemini API Key ကို ထည့်သွင်းပါ။", true);
             }
         });
 
-        // Page စတင် Load တဲ့အခါ sessionStorage မှာ Key ရှိမရှိ စစ်ဆေးခြင်း
+        // Check for stored API Key on page load
         document.addEventListener('DOMContentLoaded', function() {
             const storedApiKey = sessionStorage.getItem('geminiApiKey');
             if (storedApiKey) {
-                geminiApiKeyInput.value = storedApiKey; // Key ရှိရင် input မှာ ဖြည့်ပေးထား
-                globalApiKey = storedApiKey; // global variable ကိုလည်း update လုပ်
-                showPromptGeneratorScreen(); // Content Generator Screen ကို တိုက်ရိုက်ပြ
+                geminiApiKeyInput.value = storedApiKey; // Populate input field
+                globalApiKey = storedApiKey; // Update global variable
+                showPromptGeneratorScreen(); // Directly show generator screen
             } else {
-                showApiKeyScreen(); // Key မရှိရင် API Key Screen ကို ပြ
+                showApiKeyScreen(); // Show API Key screen if no key is stored
             }
         });
 
-        // "Go Back" Button နှိပ်ခြင်း
+        // "Go Back" button click handler
         backBtn.addEventListener('click', function() {
-            sessionStorage.removeItem('geminiApiKey'); // သိမ်းထားတဲ့ Key ကို ဖျက်
-            globalApiKey = ''; // global variable ကိုလည်း ဖျက်
-            geminiApiKeyInput.value = ''; // input field ကို ရှင်း
-            showApiKeyScreen(); // API Key Screen ကို ပြန်ပြ
+            sessionStorage.removeItem('geminiApiKey'); // Clear stored key
+            globalApiKey = ''; // Clear global variable
+            geminiApiKeyInput.value = ''; // Clear input field
+            showApiKeyScreen(); // Go back to API Key screen
         });
 
-        // "Refresh" Button နှိပ်ခြင်း
+        // "Refresh" button click handler
         refreshBtn.addEventListener('click', function() {
             window.location.reload();
         });
 
+        /**
+         * Displays text in the output container, optionally styling it as an error.
+         * @param {string} text The text to display.
+         * @param {boolean} isError Whether the text should be styled as an error.
+         */
+        function displayOutput(text, isError = false) {
+            generatedContentText.textContent = text;
+            if (isError) {
+                generatedContentText.classList.add('error-text');
+                copyOutputBtn.style.opacity = '0'; // Hide copy button for errors
+            } else {
+                generatedContentText.classList.remove('error-text');
+                copyOutputBtn.style.opacity = '1'; // Show copy button for valid content
+            }
+            outputContainer.classList.remove('hidden');
+        }
 
-        // Content ဖန်တီးရန် Button နှိပ်ခြင်း
+        // Content generation button click handler
         generateContentBtn.addEventListener('click', async function() {
             const topic = document.getElementById('topic').value.trim();
             const tone = document.getElementById('tone').value;
@@ -396,18 +414,17 @@
             const length = document.getElementById('length').value;
 
             if (!topic && !details) {
-                alert("ကျေးဇူးပြု၍ ခေါင်းစဉ် သို့မဟုတ် အကြောင်းအရာ/အသေးစိတ် ဖြည့်သွင်းပါ။");
+                displayOutput("ကျေးဇူးပြု၍ ခေါင်းစဉ် သို့မဟုတ် အကြောင်းအရာ/အသေးစိတ် ဖြည့်သွင်းပါ။", true);
                 return;
             }
 
-            // User ထည့်ထားတဲ့ Key ရှိမရှိ ထပ်စစ်
             if (!globalApiKey) {
-                alert("Gemini API Key မတွေ့ပါ။ ကျေးဇူးပြု၍ API Key ထည့်သွင်းပါ။");
-                showApiKeyScreen(); // Key မရှိရင် API Key Screen ကို ပြန်ပို့
+                displayOutput("Gemini API Key မတွေ့ပါ။ ကျေးဇူးပြု၍ API Key ထည့်သွင်းပါ။", true);
+                showApiKeyScreen(); // Redirect to API Key screen if somehow key is lost
                 return;
             }
 
-            // Gemini အတွက် Prompt စာကြောင်း ဖန်တီးခြင်း
+            // Construct the prompt for Gemini
             let promptForGemini = "မြန်မာဘာသာဖြင့် အောက်ပါအချက်အလက်များကို အခြေခံ၍ အကြောင်းအရာတစ်ခု ဖန်တီးပေးပါ။\n\n";
             if (topic) {
                 promptForGemini += `ခေါင်းစဉ်: "${topic}"\n`;
@@ -424,50 +441,49 @@
             promptForGemini += `ကျေးဇူးပြု၍ အချက်အလက်ပြည့်စုံသော အကြောင်းအရာတစ်ခုကို ရေးသားပေးပါ။`;
 
 
-            console.log("Gemini သို့ ပေးပို့မည့် Prompt:", promptForGemini);
+            console.log("Prompt sent to Gemini:", promptForGemini);
 
-            // Loading ပြသခြင်း၊ Output ကို ဖျောက်ထားခြင်း
+            // Show loading, hide output, disable buttons
             loadingIndicator.style.display = 'block';
             outputContainer.classList.add('hidden');
             generatedContentText.textContent = '';
             copyOutputBtn.style.opacity = '0';
+            generateContentBtn.disabled = true; // Disable generate button
+            backBtn.disabled = true; // Disable back button
+
 
             try {
-                // GoogleGenerativeAI object ကို global scope မှ တိုက်ရိုက်ခေါ်ယူအသုံးပြုခြင်း
+                // Initialize GoogleGenerativeAI from global scope
                 const genAI = new GoogleGenerativeAI(globalApiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-                // Gemini API ကို ခေါ်ဆိုခြင်း
                 const result = await model.generateContent(promptForGemini);
                 const response = await result.response;
-                const generatedText = response.text(); // ရလာတဲ့ Content ကို ယူ
+                const generatedText = response.text();
 
                 if (generatedText) {
-                    generatedContentText.textContent = generatedText; // Output မှာ ပြသ
-                    outputContainer.classList.remove('hidden'); // Output Box ကို ပြ
-                    copyOutputBtn.style.opacity = '1'; // Copy Button ကို ပြ
+                    displayOutput(generatedText); // Display generated content
                 } else {
-                    generatedContentText.textContent = "Gemini မှ အဖြေတစ်ခုမှ ပြန်လည်မရရှိခဲ့ပါ။";
-                    outputContainer.classList.remove('hidden');
+                    displayOutput("Gemini မှ အဖြေတစ်ခုမှ ပြန်လည်မရရှိခဲ့ပါ။", true);
                 }
 
             } catch (error) {
-                console.error('Content ဖန်တီးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့ပါသည်။:', error);
+                console.error('Content generation error:', error);
                 let errorMessage = "Content ဖန်တီးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့ပါသည်။";
-                // API Key မမှန်ရင် သီးသန့် Error Message ပြ
                 if (error.message.includes('API key not valid')) {
                     errorMessage += "\n\nသင်ထည့်သွင်းထားသော API Key သည် မမှန်ကန်ပါ။ ကျေးဇူးပြု၍ ပြန်လည်စစ်ဆေးပါ။";
                 } else {
                     errorMessage += `\n\nအသေးစိတ်အချက်အလက်: ${error.message}`;
                 }
-                generatedContentText.textContent = errorMessage;
-                outputContainer.classList.remove('hidden');
+                displayOutput(errorMessage, true); // Display error message
             } finally {
-                loadingIndicator.style.display = 'none'; // Loading ကို ဖျောက်
+                loadingIndicator.style.display = 'none'; // Hide loading
+                generateContentBtn.disabled = false; // Re-enable generate button
+                backBtn.disabled = false; // Re-enable back button
             }
         });
 
-        // Content ကို ကူးယူရန် Button နှိပ်ခြင်း
+        // Copy content button click handler
         copyOutputBtn.addEventListener('click', function() {
             const textToCopy = generatedContentText.textContent;
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -477,6 +493,7 @@
                 }, 1500);
             }).catch(err => {
                 console.error('Copy Failed:', err);
+                // Provide user feedback for copy failure
                 alert('Content ကူးယူ၍ မရပါ။ (HTTPS သို့မဟုတ် လုံခြုံသော localhost တွင်သာ အလုပ်လုပ်ပါသည်)');
             });
         });
@@ -484,4 +501,3 @@
     </script>
 </body>
 </html>
-
