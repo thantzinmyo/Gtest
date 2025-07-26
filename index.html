@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon"> 
+    <link rel="manifest" href="/site.webmanifest">
     
     <style>
         /* Global Styles */
@@ -491,4 +491,23 @@
                 loadingIndicator.style.display = 'none'; // Loading ကို ဖျောက်
                 generateContentBtn.disabled = false; // Generate button ကို ပြန်ဖွင့်မယ်
                 backBtn.disabled = false; // Back button ကို ပြန်ဖွင့်မယ်
-      
+            }
+        });
+
+        // Content ကို ကူးယူရန် Button နှိပ်ခြင်း
+        copyOutputBtn.addEventListener('click', function() {
+            const textToCopy = generatedContentText.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                copyOutputBtn.textContent = 'ကူးယူပြီးပြီ!';
+                setTimeout(() => {
+                    copyOutputBtn.textContent = 'ကူးယူရန်';
+                }, 1500);
+            }).catch(err => {
+                console.error('Copy Failed:', err);
+                alert('Content ကူးယူ၍ မရပါ။ (HTTPS သို့မဟုတ် လုံခြုံသော localhost တွင်သာ အလုပ်လုပ်ပါသည်)');
+            });
+        });
+
+    </script>
+</body>
+</html>
