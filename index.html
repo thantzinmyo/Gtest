@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>မြန်မာ Content AI Prompt Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.min.js"></script>
+    
     <style>
+        /* Global Styles */
         body {
             font-family: 'Padauk', sans-serif; /* Myanmar font */
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); /* Gradient background */
@@ -33,7 +36,7 @@
             flex-direction: column; /* Stack children vertically */
         }
 
-        /* --- Common Styles --- */
+        /* Header Styles */
         .header {
             display: flex;
             justify-content: space-between;
@@ -72,6 +75,7 @@
             transform: scale(1.1);
         }
 
+        /* Form Group Styles */
         .form-group {
             margin-bottom: 20px;
         }
@@ -84,7 +88,7 @@
         }
 
         .form-group input[type="text"],
-        .form-group input[type="password"], /* For API key input */
+        .form-group input[type="password"],
         .form-group select,
         .form-group textarea {
             width: calc(100% - 20px); /* Adjust for padding */
@@ -113,6 +117,7 @@
             min-height: 100px;
         }
 
+        /* Primary Button Styles */
         button.primary-btn {
             background-color: #fdbb2d; /* Accent button color */
             color: #333;
@@ -131,6 +136,7 @@
             transform: translateY(-2px);
         }
 
+        /* Footer Links Styles */
         .footer-links {
             text-align: center;
             margin-top: 30px;
@@ -148,7 +154,7 @@
             color: #fff;
         }
 
-        /* --- API Key Screen Specific Styles --- */
+        /* API Key Screen Specific Styles */
         #apiKeyScreen {
             display: flex;
             flex-direction: column;
@@ -164,13 +170,14 @@
             color: #ccc;
         }
 
-        /* --- Prompt Generator Screen Specific Styles --- */
+        /* Prompt Generator Screen Specific Styles */
         #promptGeneratorScreen {
             display: none; /* Hidden by default */
             flex-direction: column;
             flex-grow: 1; /* Make it take available space */
         }
 
+        /* Output Container Styles */
         #outputContainer {
             margin-top: 25px;
             padding: 15px;
@@ -189,6 +196,7 @@
             display: none;
         }
 
+        /* Copy Button in Output Styles */
         #copyOutputBtn {
             background-color: #007bff; /* Blue for copy button */
             color: white;
@@ -211,6 +219,7 @@
             background-color: #0056b3;
         }
 
+        /* Loading Indicator Styles */
         #loadingIndicator {
             display: none; /* Hidden by default */
             text-align: center;
@@ -219,7 +228,7 @@
             font-weight: bold;
         }
 
-        /* Responsive adjustments */
+        /* Responsive Adjustments */
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -305,7 +314,8 @@
     </div>
 
     <script>
-       
+        // Google Generative AI SDK မှ GoogleGenerativeAI object ကို import လုပ်ရန် မလိုအပ်ပါ။
+        // ၎င်းကို <head> ထဲရှိ script tag မှ Global Scope သို့ ထည့်သွင်းပေးပြီးဖြစ်သည်။
 
         const apiKeyScreen = document.getElementById('apiKeyScreen');
         const promptGeneratorScreen = document.getElementById('promptGeneratorScreen');
@@ -319,7 +329,7 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const backBtn = document.getElementById('backBtn');
 
-        let globalApiKey = '';
+        let globalApiKey = ''; // User ထည့်သွင်းမယ့် API Key ကို သိမ်းထားမယ့် Variable
 
         // စစချင်းမှာ API Key ထည့်တဲ့ Screen ကို ပြသမယ်
         showApiKeyScreen();
@@ -423,7 +433,7 @@
             copyOutputBtn.style.opacity = '0';
 
             try {
-                // GoogleGenerativeAI က global object ဖြစ်နေလို့ import မလုပ်ဘဲ တိုက်ရိုက်သုံးနိုင်ပါတယ်။
+                // GoogleGenerativeAI object ကို global scope မှ တိုက်ရိုက်ခေါ်ယူအသုံးပြုခြင်း
                 const genAI = new GoogleGenerativeAI(globalApiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
