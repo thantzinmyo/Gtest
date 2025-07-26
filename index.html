@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>မြန်မာ Content AI Prompt Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.min.js"></script>
+    <style>
+        body {
+            font-family: 'Padauk', sans-serif; /* Myanmar font */
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); /* Gradient background */
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark background */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            display: flex; /* Use flex for internal layout */
+            flex-direction: column; /* Stack children vertically */
+        }
+
+        /* --- Common Styles --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            color: #fdbb2d; /* Accent color for title */
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .header h1::before {
+            content: '✨'; /* Star emoji */
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .header button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: none; /* Hide by default, show on prompt screen */
+        }
+        .header button.visible {
+            display: block;
+        }
+
+        .header button:hover {
+            transform: scale(1.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ccc;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"], /* For API key input */
+        .form-group select,
+        .form-group textarea {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 12px 10px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background-color: #333;
+            color: #fff;
+            font-size: 1em;
+            box-sizing: border-box;
+            -webkit-appearance: none; /* Remove default styling for select */
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .form-group select {
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2C197.398c-0.3%2C0.3-0.6%2C0.4-1%2C0.4H6.4c-0.4%2C0-0.7-0.1-1-0.4c-0.6-0.6-0.6-1.6%2C0-2.2l140-140c0.3-0.3%2C0.6-0.4%2C1-0.4s0.7%2C0.1%2C1%2C0.4l140%2C140C287.6%2C195.798%2C287.6%2C196.798%2C287%2C197.398z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 12px auto;
+            padding-right: 30px; /* Space for the arrow */
+        }
+
+        .form-group textarea {
+            resize: vertical; /* Allow vertical resizing */
+            min-height: 100px;
+        }
+
+        button.primary-btn {
+            background-color: #fdbb2d; /* Accent button color */
+            color: #333;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button.primary-btn:hover {
+            background-color: #e0a320; /* Darker shade on hover */
+            transform: translateY(-2px);
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .footer-links a {
+            color: #fdbb2d;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 0.9em;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        /* --- API Key Screen Specific Styles --- */
+        #apiKeyScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex-grow: 1; /* Make it take available space */
+            justify-content: center; /* Center content vertically */
+        }
+
+        #apiKeyScreen p {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        /* --- Prompt Generator Screen Specific Styles --- */
+        #promptGeneratorScreen {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            flex-grow: 1; /* Make it take available space */
+        }
+
+        #outputContainer {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            min-height: 100px;
+            color: #eee;
+            font-size: 0.95em;
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+            word-wrap: break-word; /* Break long words */
+            position: relative; /* For copy button positioning */
+        }
+
+        #outputContainer.hidden {
+            display: none;
+        }
+
+        #copyOutputBtn {
+            background-color: #007bff; /* Blue for copy button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.8em;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease, background-color 0.2s ease;
+        }
+
+        #outputContainer:hover #copyOutputBtn {
+            opacity: 1; /* Show on hover */
+        }
+        #copyOutputBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #loadingIndicator {
+            display: none; /* Hidden by default */
+            text-align: center;
+            margin-top: 20px;
+            color: #fdbb2d;
+            font-weight: bold;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 0 15px; /* Add some side margin on small screens */
+            }
+            .header h1 {
+                font-size: 1.5em;
+            }
+            button.primary-btn {
+                font-size: 1em;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>မြန်မာ Content AI</h1>
+            <div>
+                <button id="refreshBtn" title="Refresh" class="header-btn">⟳</button>
+                <button id="backBtn" title="Go Back" class="header-btn">←</button>
+            </div>
+        </div>
+
+        <div id="apiKeyScreen">
+            <div class="form-group">
+                <label for="geminiApiKey">Gemini API Key</label>
+                <input type="password" id="geminiApiKey" placeholder="သင်၏ Gemini API key ထည့်သွင်းပါ">
+            </div>
+            <button class="primary-btn" id="saveApiKeyBtn">ဆက်လက်ဆောင်ရွက်ရန်</button>
+            <p>သင်၏ Gemini API key အား Google AI Studio တွင် ရယူနိုင်ပါသည်။</p>
+        </div>
+
+        <div id="promptGeneratorScreen">
+            <div class="form-group">
+                <label for="topic">ခေါင်းစဉ်အမည်</label>
+                <input type="text" id="topic" placeholder="ဥပမာ: မြန်မာအစားအစာအချက်အပြုတ်များ">
+            </div>
+
+            <div class="form-group">
+                <label for="tone">ရေးသားဟန်</label>
+                <select id="tone">
+                    <option value="">ရွေးချယ်ပါ</option>
+                    <option value="တရားဝင်">တရားဝင်</option>
+                    <option value="ပေါ့ပေါ့ပါးပါး">ပေါ့ပေါ့ပါးပါး</option>
+                    <option value="အချက်အလက်ပြည့်စုံ">အချက်အလက်ပြည့်စုံ</option>
+                    <option value="တီထွင်ဖန်တီး">တီထွင်ဖန်တီး</option>
+                    <option value="ဟာသနှော">ဟာသနှော</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="details">အကြောင်းအရာ / အကြံပြုချက်</label>
+                <textarea id="details" placeholder="သင်၏ မေးခွန်း သို့မဟုတ် လိုချင်သည့် အကြောင်းအရာကို ဤနေရာတွင် ရေးပါ။"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="length">အရှည်အရေးအသား</label>
+                <select id="length">
+                    <option value="">အလယ်အလတ်</option>
+                    <option value="တိုတောင်းသည်">တိုတောင်းသည်</option>
+                    <option value="အလယ်အလတ်">အလယ်အလတ်</option>
+                    <option value="ရှည်လျားသည်">ရှည်လျားသည်</option>
+                </select>
+            </div>
+
+            <button class="primary-btn" id="generateContentBtn">Content ဖန်တီးရန်</button>
+
+            <div id="loadingIndicator">Content ဖန်တီးနေပါသည်။ ခနစောင့်ပါ။...</div>
+
+            <div id="outputContainer" class="hidden">
+                <pre id="generatedContentText"></pre>
+                <button id="copyOutputBtn">ကူးယူရန်</button>
+            </div>
+        </div>
+
+        <div class="footer-links">
+            <a href="https://t.me/yourtelegramgroup" target="_blank">Join Telegram Group</a>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio (API Key ရယူရန်)</a>
+            <a href="#" target="_blank">Buy Premium here</a>
+        </div>
+    </div>
+
+    <script>
+        // ဒီနေရာမှာ 'import' statement ကို လုံးဝ ဖယ်ထားပါ
+        // import { GoogleGenerativeAI } from 'https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.min.js'; // ဒီစာကြောင်းကို လုံးဝ ဖျက်ထားရပါမယ်
+
+        const apiKeyScreen = document.getElementById('apiKeyScreen');
+        const promptGeneratorScreen = document.getElementById('promptGeneratorScreen');
+        const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+        const geminiApiKeyInput = document.getElementById('geminiApiKey');
+        const generateContentBtn = document.getElementById('generateContentBtn');
+        const outputContainer = document.getElementById('outputContainer');
+        const generatedContentText = document.getElementById('generatedContentText');
+        const copyOutputBtn = document.getElementById('copyOutputBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const backBtn = document.getElementById('backBtn');
+
+        let globalApiKey = '';
+
+        // စစချင်းမှာ API Key ထည့်တဲ့ Screen ကို ပြသမယ်
+        showApiKeyScreen();
+
+        function showApiKeyScreen() {
+            apiKeyScreen.style.display = 'flex';
+            promptGeneratorScreen.style.display = 'none';
+            refreshBtn.classList.remove('visible');
+            backBtn.classList.remove('visible');
+            outputContainer.classList.add('hidden');
+            generatedContentText.textContent = '';
+        }
+
+        function showPromptGeneratorScreen() {
+            apiKeyScreen.style.display = 'none';
+            promptGeneratorScreen.style.display = 'flex';
+            refreshBtn.classList.add('visible');
+            backBtn.classList.add('visible');
+        }
+
+        // API Key ကို သိမ်းဆည်းရန် Button နှိပ်ခြင်း
+        saveApiKeyBtn.addEventListener('click', function() {
+            const apiKey = geminiApiKeyInput.value.trim();
+            if (apiKey) {
+                globalApiKey = apiKey; // User ထည့်တဲ့ Key ကို global variable မှာ သိမ်း
+                sessionStorage.setItem('geminiApiKey', apiKey); // Page Refresh လို့လဲ မပျောက်အောင် sessionStorage မှာ သိမ်း
+                showPromptGeneratorScreen(); // Content Generator Screen ကို ပြောင်းပြ
+            } else {
+                alert("ကျေးဇူးပြု၍ သင်၏ Gemini API Key ကို ထည့်သွင်းပါ။");
+            }
+        });
+
+        // Page စတင် Load တဲ့အခါ sessionStorage မှာ Key ရှိမရှိ စစ်ဆေးခြင်း
+        document.addEventListener('DOMContentLoaded', function() {
+            const storedApiKey = sessionStorage.getItem('geminiApiKey');
+            if (storedApiKey) {
+                geminiApiKeyInput.value = storedApiKey; // Key ရှိရင် input မှာ ဖြည့်ပေးထား
+                globalApiKey = storedApiKey; // global variable ကိုလည်း update လုပ်
+                showPromptGeneratorScreen(); // Content Generator Screen ကို တိုက်ရိုက်ပြ
+            } else {
+                showApiKeyScreen(); // Key မရှိရင် API Key Screen ကို ပြ
+            }
+        });
+
+        // "Go Back" Button နှိပ်ခြင်း
+        backBtn.addEventListener('click', function() {
+            sessionStorage.removeItem('geminiApiKey'); // သိမ်းထားတဲ့ Key ကို ဖျက်
+            globalApiKey = ''; // global variable ကိုလည်း ဖျက်
+            geminiApiKeyInput.value = ''; // input field ကို ရှင်း
+            showApiKeyScreen(); // API Key Screen ကို ပြန်ပြ
+        });
+
+        // "Refresh" Button နှိပ်ခြင်း
+        refreshBtn.addEventListener('click', function() {
+            window.location.reload();
+        });
+
+
+        // Content ဖန်တီးရန် Button နှိပ်ခြင်း
+        generateContentBtn.addEventListener('click', async function() {
+            const topic = document.getElementById('topic').value.trim();
+            const tone = document.getElementById('tone').value;
+            const details = document.getElementById('details').value.trim();
+            const length = document.getElementById('length').value;
+
+            if (!topic && !details) {
+                alert("ကျေးဇူးပြု၍ ခေါင်းစဉ် သို့မဟုတ် အကြောင်းအရာ/အသေးစိတ် ဖြည့်သွင်းပါ။");
+                return;
+            }
+
+            // User ထည့်ထားတဲ့ Key ရှိမရှိ ထပ်စစ်
+            if (!globalApiKey) {
+                alert("Gemini API Key မတွေ့ပါ။ ကျေးဇူးပြု၍ API Key ထည့်သွင်းပါ။");
+                showApiKeyScreen(); // Key မရှိရင် API Key Screen ကို ပြန်ပို့
+                return;
+            }
+
+            // Gemini အတွက် Prompt စာကြောင်း ဖန်တီးခြင်း
+            let promptForGemini = "မြန်မာဘာသာဖြင့် အောက်ပါအချက်အလက်များကို အခြေခံ၍ အကြောင်းအရာတစ်ခု ဖန်တီးပေးပါ။\n\n";
+            if (topic) {
+                promptForGemini += `ခေါင်းစဉ်: "${topic}"\n`;
+            }
+            if (details) {
+                promptForGemini += `အသေးစိတ်အကြောင်းအရာ/အကြံပြုချက်: "${details}"\n`;
+            }
+            if (tone && tone !== '') {
+                promptForGemini += `ရေးသားဟန်: "${tone}" ဟန်ဖြင့်\n`;
+            }
+            if (length && length !== '') {
+                promptForGemini += `အရှည်: "${length}" အရေးအသား ဖြစ်ပါစေ။\n`;
+            }
+            promptForGemini += `ကျေးဇူးပြု၍ အချက်အလက်ပြည့်စုံသော အကြောင်းအရာတစ်ခုကို ရေးသားပေးပါ။`;
+
+
+            console.log("Gemini သို့ ပေးပို့မည့် Prompt:", promptForGemini);
+
+            // Loading ပြသခြင်း၊ Output ကို ဖျောက်ထားခြင်း
+            loadingIndicator.style.display = 'block';
+            outputContainer.classList.add('hidden');
+            generatedContentText.textContent = '';
+            copyOutputBtn.style.opacity = '0';
+
+            try {
+                // GoogleGenerativeAI က global object ဖြစ်နေလို့ import မလုပ်ဘဲ တိုက်ရိုက်သုံးနိုင်ပါတယ်။
+                const genAI = new GoogleGenerativeAI(globalApiKey);
+                const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+                // Gemini API ကို ခေါ်ဆိုခြင်း
+                const result = await model.generateContent(promptForGemini);
+                const response = await result.response;
+                const generatedText = response.text(); // ရလာတဲ့ Content ကို ယူ
+
+                if (generatedText) {
+                    generatedContentText.textContent = generatedText; // Output မှာ ပြသ
+                    outputContainer.classList.remove('hidden'); // Output Box ကို ပြ
+                    copyOutputBtn.style.opacity = '1'; // Copy Button ကို ပြ
+                } else {
+                    generatedContentText.textContent = "Gemini မှ အဖြေတစ်ခုမှ ပြန်လည်မရရှိခဲ့ပါ။";
+                    outputContainer.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Content ဖန်တီးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့ပါသည်။:', error);
+                let errorMessage = "Content ဖန်တီးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့ပါသည်။";
+                // API Key မမှန်ရင် သီးသန့် Error Message ပြ
+                if (error.message.includes('API key not valid')) {
+                    errorMessage += "\n\nသင်ထည့်သွင်းထားသော API Key သည် မမှန်ကန်ပါ။ ကျေးဇူးပြု၍ ပြန်လည်စစ်ဆေးပါ။";
+                } else {
+                    errorMessage += `\n\nအသေးစိတ်အချက်အလက်: ${error.message}`;
+                }
+                generatedContentText.textContent = errorMessage;
+                outputContainer.classList.remove('hidden');
+            } finally {
+                loadingIndicator.style.display = 'none'; // Loading ကို ဖျောက်
+            }
+        });
+
+        // Content ကို ကူးယူရန် Button နှိပ်ခြင်း
+        copyOutputBtn.addEventListener('click', function() {
+            const textToCopy = generatedContentText.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                copyOutputBtn.textContent = 'ကူးယူပြီးပြီ!';
+                setTimeout(() => {
+                    copyOutputBtn.textContent = 'ကူးယူရန်';
+                }, 1500);
+            }).catch(err => {
+                console.error('Copy Failed:', err);
+                alert('Content ကူးယူ၍ မရပါ။ (HTTPS သို့မဟုတ် လုံခြုံသော localhost တွင်သာ အလုပ်လုပ်ပါသည်)');
+            });
+        });
+
+    </script>
+</body>
+</html>
